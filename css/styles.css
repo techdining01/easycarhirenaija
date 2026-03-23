@@ -1,0 +1,83 @@
+:root {
+    --primary-color: #0d6efd;
+    --dark-bg: #0b0c10;
+    --luxury-gold: #c5a059;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: #333;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, .navbar-brand {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Glassmorphism Navbar */
+.navbar {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+}
+
+/* Gradient Text */
+.gradient-text {
+    background: linear-gradient(45deg, #0d6efd, #c5a059);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Hero Section */
+.hero-section {
+    min-height: 80vh;
+    background: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), 
+                url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200') center/cover;
+    padding-top: 100px;
+}
+
+/* Car Cards */
+.car-card {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-radius: 20px !important;
+    overflow: hidden;
+}
+
+.car-card:hover {
+    transform: translateY(-10px);
+}
+
+.car-card img {
+    transition: transform 0.6s ease;
+    height: 250px;
+    object-fit: cover;
+}
+
+.car-card:hover img {
+    transform: scale(1.1);
+}
+
+.shadow-hover {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+/* Rounded Buttons */
+.btn-primary {
+    background: linear-gradient(45deg, #0d6efd, #0056b3);
+    border: none;
+}
+
+/* Utility */
+.container-gallery {
+    max-width: 1100px;
+}
+
