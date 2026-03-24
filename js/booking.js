@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
             right: 'dayGridMonth,timeGridWeek'
         },
         selectable: true,
+        selectLongPressDelay: 0,
+        longPressDelay: 0,
         select: function(info) {
             const selectedDate = info.startStr;
             dateText.innerText = selectedDate;
