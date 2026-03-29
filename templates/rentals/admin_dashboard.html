@@ -1,0 +1,498 @@
+{% extends 'rentals/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard | EasyCarHireNaija{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row pt-4">
+        <div class="col-12 mb-4">
+            <h2 class="fw-bold">Bookings Dashboard</h2>
+            <p class="text-muted">Monitor all customer reservations, driver upkeeps, and multi-day totals.</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Booking ID</th>
+                            <th>Customer</th>
+                            <th>Car</th>
+                            <th>Dates / Duration</th>
+                            <th>Rental Type</th>
+                            <th>Extra Details</th>
+                            <th>Total Amount</th>
+                            <th class="pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td class="ps-4 fw-bold">#{{ booking.id }}</td>
+                            <td>
+                                <div class="fw-bold">{{ booking.customer_name }}</div>
+                                <div class="small text-muted">{{ booking.customer_phone }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ booking.car.name }}</span>
+                            </td>
+                            <td>
+                                <div class="small">{{ booking.start_date|date:"M d, Y" }}</div>
+                                {% if booking.is_multi_day %}
+                                <div class="small text-muted">to {{ booking.end_date|date:"M d, Y" }}</div>
+                                {% else %}
+                                <div class="small text-muted">0 Day (5h Base)</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking.is_multi_day %}
+                                <span class="badge bg-info text-dark">Multi-day</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Hourly</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking.is_multi_day %}
+                                    <div class="small">Upkeep: NGN {{ booking.car.driver_upkeep }}/day</div>
+                                {% elif booking.overtime_hours > 0 %}
+                                    <div class="small text-danger">+{{ booking.overtime_hours }}h Overtime</div>
+                                {% else %}
+                                    <div class="small text-muted">No extras</div>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold text-success">
+                                NGN {{ booking.amount }}
+                            </td>
+                            <td class="pe-4">
+                                <button class="btn btn-sm btn-outline-dark rounded-pill view-booking-btn" 
+                                    data-id="{{ booking.id }}"
+                                    data-name="{{ booking.customer_name }}"
+                                    data-email="{{ booking.customer_email }}"
+                                    data-phone="{{ booking.customer_phone }}"
+                                    data-address="{{ booking.customer_address }}"
+                                    data-kinsman="{{ booking.kinsman_name }}"
+                                    data-kphone="{{ booking.kinsman_phone }}"
+                                    data-kaddress="{{ booking.kinsman_address }}">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-calendar-xmark fs-2 mb-3 d-block text-secondary"></i>
+                                No bookings found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if bookings.has_other_pages %}
+            <nav class="p-3 border-top text-center">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if bookings.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page_bookings={{ bookings.previous_page_number }}{% if cars.number > 1 %}&page_cars={{ cars.number }}{% endif %}">Previous</a></li>
+                    {% endif %}
+                    {% for i in bookings.paginator.page_range %}
+                    <li class="page-item {% if bookings.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page_bookings={{ i }}{% if cars.number > 1 %}&page_cars={{ cars.number }}{% endif %}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if bookings.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page_bookings={{ bookings.next_page_number }}{% if cars.number > 1 %}&page_cars={{ cars.number }}{% endif %}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row pt-5">
+        <div class="col-12 mb-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold">Vehicle Management</h2>
+                <p class="text-muted">Manage car pricing and driver upkeep rates.</p>
+            </div>
+            <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addCarModal">
+                <i class="fa-solid fa-plus me-2"></i>Add New Car
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Car Name</th>
+                            <th>Daily Price</th>
+                            <th>Base (5h)</th>
+                            <th>Overtime (/h)</th>
+                            <th>Driver Upkeep</th>
+                            <th class="pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for car in cars %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ car.name }}</td>
+                            <td>NGN {{ car.price|floatformat:2 }}</td>
+                            <td>NGN {{ car.hourly_rate|floatformat:2 }}</td>
+                            <td>NGN {{ car.overtime_rate|floatformat:2 }}</td>
+                            <td>NGN {{ car.driver_upkeep|floatformat:2 }}</td>
+                            <td class="pe-4">
+                                <button class="btn btn-sm btn-primary rounded-pill manage-car-btn" 
+                                    data-id="{{ car.id }}"
+                                    data-name="{{ car.name }}"
+                                    data-brand="{{ car.brand }}"
+                                    data-price="{{ car.price }}"
+                                    data-hourly="{{ car.hourly_rate }}"
+                                    data-overtime="{{ car.overtime_rate }}"
+                                    data-upkeep="{{ car.driver_upkeep }}"
+                                    data-image="{{ car.image }}"
+                                    data-description="{{ car.description }}"
+                                    data-rating="{{ car.rating }}">
+                                    <i class="fa-solid fa-edit me-1"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger rounded-pill delete-car-btn" 
+                                    data-id="{{ car.id }}"
+                                    data-name="{{ car.name }}">
+                                    <i class="fa-solid fa-trash me-1"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if cars.has_other_pages %}
+            <nav class="p-3 border-top text-center">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if cars.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page_cars={{ cars.previous_page_number }}{% if bookings.number > 1 %}&page_bookings={{ bookings.number }}{% endif %}">Previous</a></li>
+                    {% endif %}
+                    {% for i in cars.paginator.page_range %}
+                    <li class="page-item {% if cars.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page_cars={{ i }}{% if bookings.number > 1 %}&page_bookings={{ bookings.number }}{% endif %}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if cars.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page_cars={{ cars.next_page_number }}{% if bookings.number > 1 %}&page_bookings={{ bookings.number }}{% endif %}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add New Car Modal -->
+<div class="modal fade" id="addCarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 bg-dark text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">Add New Vehicle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{% url 'rentals:add_car' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold">Car Name</label>
+                            {{ car_form.name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold">Brand</label>
+                            {{ car_form.brand }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted small fw-bold">Daily Price (NGN)</label>
+                            {{ car_form.price }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted small fw-bold">0 Day (5h) Base (NGN)</label>
+                            {{ car_form.hourly_rate }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted small fw-bold">Overtime Rate/h (NGN)</label>
+                            {{ car_form.overtime_rate }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Driver Upkeep (NGN) - Multi-day only</label>
+                        {{ car_form.driver_upkeep }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Image Path/URL</label>
+                        {{ car_form.image }}
+                        <div class="form-text small">e.g., /static/images/cars/camry.jpg</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Description</label>
+                        {{ car_form.description }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Initial Rating</label>
+                        {{ car_form.rating }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 mt-3">Create Car Entry</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 bg-danger text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <i class="fa-solid fa-triangle-exclamation text-danger fs-1 mb-3"></i>
+                <p class="fs-5 mb-1">Are you sure you want to delete</p>
+                <p class="fw-bold fs-4 text-dark" id="deleteCarNameDisplay"></p>
+                <p class="text-muted small">This action cannot be undone and will remove the vehicle from the fleet.</p>
+                <input type="hidden" id="deleteCarIdInternal">
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmDeleteBtn">Delete Vehicle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Car Rate Edit Modal -->
+<div class="modal fade" id="carEditModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 bg-primary text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">Update Vehicle: <span id="editCarNameTitle"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="carRatesForm">
+                    <input type="hidden" id="editCarId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold">Car Name</label>
+                            <input type="text" class="form-control rounded-pill" id="editCarName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold">Brand</label>
+                            <input type="text" class="form-control rounded-pill" id="editCarBrand" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted small fw-bold">Daily Price (NGN)</label>
+                            <input type="number" step="0.01" class="form-control rounded-pill" id="editCarPrice" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted small fw-bold">0 Day Base (NGN)</label>
+                            <input type="number" step="0.01" class="form-control rounded-pill" id="editCarHourly" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted small fw-bold">Overtime/h (NGN)</label>
+                            <input type="number" step="0.01" class="form-control rounded-pill" id="editCarOvertime" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Driver Upkeep (NGN)</label>
+                        <input type="number" step="0.01" class="form-control rounded-pill" id="editCarUpkeep" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Image Path/URL</label>
+                        <input type="text" class="form-control rounded-pill" id="editCarImage" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Description</label>
+                        <textarea class="form-control" id="editCarDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Rating</label>
+                        <input type="number" step="0.1" min="0" max="5" class="form-control rounded-pill" id="editCarRating" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 mt-3" id="saveCarRates">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Details Modal -->
+<div class="modal fade" id="bookingDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 bg-dark text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">Reservation Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-user me-2"></i>Customer Information</h6>
+                <div class="mb-3">
+                    <label class="small text-muted d-block">Full Name</label>
+                    <span id="detailName" class="fw-bold fs-5"></span>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <i class="fa-solid fa-phone me-2 text-muted"></i> <span id="detailPhone"></span>
+                    </div>
+                    <div class="col-6">
+                        <i class="fa-solid fa-envelope me-2 text-muted"></i> <span id="detailEmail"></span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <i class="fa-solid fa-location-dot me-2 text-muted"></i> <span id="detailAddress"></span>
+                </div>
+                
+                <hr>
+                
+                <h6 class="fw-bold text-danger mb-3 mt-4"><i class="fa-solid fa-users me-2"></i>Kinsman Information</h6>
+                <div class="mb-3">
+                    <label class="small text-muted d-block">Kinsman Name</label>
+                    <span id="detailKname" class="fw-bold fs-6"></span>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-12 mb-2">
+                        <i class="fa-solid fa-phone me-2 text-muted"></i> <span id="detailKphone"></span>
+                    </div>
+                    <div class="col-12">
+                        <i class="fa-solid fa-location-dot me-2 text-muted"></i> <span id="detailKaddress"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const detailsModal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
+    
+    document.querySelectorAll('.view-booking-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('detailName').innerText = this.dataset.name;
+            document.getElementById('detailEmail').innerText = this.dataset.email;
+            document.getElementById('detailPhone').innerText = this.dataset.phone;
+            document.getElementById('detailAddress').innerText = this.dataset.address;
+            
+            document.getElementById('detailKname').innerText = this.dataset.kinsman;
+            document.getElementById('detailKphone').innerText = this.dataset.kphone;
+            document.getElementById('detailKaddress').innerText = this.dataset.kaddress;
+            
+            detailsModal.show();
+        });
+    });
+
+    // Car Management Logic
+    const carEditModal = new bootstrap.Modal(document.getElementById('carEditModal'));
+    const carRatesForm = document.getElementById('carRatesForm');
+
+    document.querySelectorAll('.manage-car-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('editCarId').value = this.dataset.id;
+            document.getElementById('editCarNameTitle').innerText = this.dataset.name;
+            document.getElementById('editCarName').value = this.dataset.name;
+            document.getElementById('editCarBrand').value = this.dataset.brand;
+            document.getElementById('editCarPrice').value = this.dataset.price;
+            document.getElementById('editCarHourly').value = this.dataset.hourly;
+            document.getElementById('editCarOvertime').value = this.dataset.overtime;
+            document.getElementById('editCarUpkeep').value = this.dataset.upkeep;
+            document.getElementById('editCarImage').value = this.dataset.image;
+            document.getElementById('editCarDescription').value = this.dataset.description;
+            document.getElementById('editCarRating').value = this.dataset.rating;
+            carEditModal.show();
+        });
+    });
+
+    carRatesForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const saveBtn = document.getElementById('saveCarRates');
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
+
+        try {
+            const response = await fetch('/api/update-car/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({
+                    car_id: document.getElementById('editCarId').value,
+                    name: document.getElementById('editCarName').value,
+                    brand: document.getElementById('editCarBrand').value,
+                    price: document.getElementById('editCarPrice').value,
+                    hourly_rate: document.getElementById('editCarHourly').value,
+                    overtime_rate: document.getElementById('editCarOvertime').value,
+                    upkeep: document.getElementById('editCarUpkeep').value,
+                    image: document.getElementById('editCarImage').value,
+                    description: document.getElementById('editCarDescription').value,
+                    rating: document.getElementById('editCarRating').value
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                window.location.reload();
+            } else {
+                throw new Error(result.message || 'Update failed');
+            }
+        } catch (err) {
+            alert(err.message);
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Save Changes';
+        }
+    });
+
+    // Delete Car Logic
+    const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+    document.querySelectorAll('.delete-car-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('deleteCarIdInternal').value = this.dataset.id;
+            document.getElementById('deleteCarNameDisplay').innerText = this.dataset.name;
+            deleteConfirmModal.show();
+        });
+    });
+
+    confirmDeleteBtn.addEventListener('click', async function() {
+        const carId = document.getElementById('deleteCarIdInternal').value;
+        this.disabled = true;
+        this.innerText = 'Deleting...';
+
+        try {
+            const response = await fetch('/api/delete-car/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ car_id: carId })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                window.location.reload();
+            } else {
+                throw new Error(result.message || 'Deletion failed');
+            }
+        } catch (err) {
+            alert(err.message);
+            this.disabled = false;
+            this.innerText = 'Delete Vehicle';
+        }
+    });
+});
+</script>
+{% endblock %}

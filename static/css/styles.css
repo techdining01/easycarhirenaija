@@ -36,8 +36,7 @@ h1, h2, h3, .navbar-brand {
 /* Hero Section */
 .hero-section {
     min-height: 80vh;
-    background: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), 
-                url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200') center/cover;
+    background: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200') center/cover;
     padding-top: 100px;
 }
 
@@ -81,24 +80,56 @@ h1, h2, h3, .navbar-brand {
     max-width: 1100px;
 }
 
-/* Social Icons Footer */
-.social-icons a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    margin: 0 10px;
+
+/* FullCalendar Customization (Crimson Luxe) */
+.fc {
+    background: #ffffff !important;
+    padding: 20px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08) !important;
+    border: none !important;
 }
 
-.social-icons a:hover {
-    background: var(--primary-color);
+.fc-toolbar-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 700 !important;
+    color: #333 !important;
+}
+
+.fc-button-primary {
+    background-color: #dc143c !important; /* Crimson */
+    border-color: #dc143c !important;
+    border-radius: 50px !important;
+    padding: 8px 20px !important;
+    text-transform: uppercase;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px;
+    transition: all 0.3s ease !important;
+}
+
+.fc-button-primary:hover {
+    background-color: #b01030 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 20, 60, 0.3);
+}
+
+.fc-event {
+    background-color: #dc143c !important; /* Crimson events */
+    border-color: #dc143c !important;
+    border-radius: 6px !important;
+    padding: 3px 8px !important;
+    font-size: 0.85rem !important;
+    color: white !important;
+}
+
+/* Social Media Icons Styling */
+.social-icon {
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.social-icon:hover {
+    color: #0d6efd !important; /* Standardize with primary-color */
     transform: translateY(-5px);
-    color: #fff;
-    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
 }

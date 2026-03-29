@@ -5,7 +5,9 @@ __pycache__/
 
 # C extensions
 *.so
-
+automobile/
+.env
+venv_new/
 # Distribution / packaging
 .Python
 build/

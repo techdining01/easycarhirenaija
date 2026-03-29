@@ -1,11 +1,11 @@
 /**
- * Main Application Logic for Elite Drive
+ * Main Application Logic for EasyCarHireNaija
  * Handles Service Worker Registration & Custom UI Notifications
  */
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/static/sw.js')
             .then(registration => {
                 console.log('ServiceWorker registration successful');
             })

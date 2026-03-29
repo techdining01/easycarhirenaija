@@ -13,7 +13,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-    const data = event.data ? event.data.json() : { title: 'Elite Drive', body: 'New car available!' };
+    const data = event.data ? event.data.json() : { title: 'EasyCarHireNaija', body: 'New car available!' };
     
     const options = {
         body: data.body,

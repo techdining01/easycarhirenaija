@@ -1,0 +1,8 @@
+{
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.extraPaths": [
+        ".",
+        "venv_new/Lib/site-packages"
+    ],
+    "python.defaultInterpreterPath": "c:/Users/USER/Desktop/easycarhirenaija/venv_new/Scripts/python.exe"
+}

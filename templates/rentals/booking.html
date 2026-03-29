@@ -1,0 +1,202 @@
+{% extends 'rentals/base.html' %}
+{% load static %}
+
+{% block title %}Book Your Luxury Drive | EasyCarHireNaija{% endblock %}
+
+{% block extra_css %}
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+    <style>
+        .fc { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .fc-toolbar-title { font-family: 'Outfit', sans-serif; font-weight: 700; }
+        .fc-button-primary { background-color: #0d6efd !important; border-color: #0d6efd !important; }
+        .fc-daygrid-day:hover { background-color: #f8f9fa; cursor: pointer; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5 mt-5">
+        <div class="row pt-4">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h1 class="display-4 fw-bold">Select Your <span class="gradient-text">Date</span></h1>
+                <p class="text-muted">Choose when you'd like to experience perfection. Our calendar syncs in real-time.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div id="calendar"></div>
+            </div>
+        </div>
+
+        <!-- Booking Summary Modal -->
+        <div class="modal fade" id="bookingModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold">Complete Your Booking</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="form-check form-switch mb-4 p-3 bg-light rounded-4 border">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" id="multiDayToggle">
+                            <label class="form-check-label fw-bold text-primary" for="multiDayToggle">
+                                <i class="fa-solid fa-calendar-days me-1"></i> Multi-day Rental
+                            </label>
+                            <div class="form-text small">Toggle on for rentals exceeding 5 hours/0 Day.</div>
+                        </div>
+
+                        <div id="hourlyFields" class="row mb-4">
+                            <div class="col-12">
+                                <div class="bg-light p-3 rounded-4 border text-center">
+                                    <div class="small text-muted fw-bold mb-2">0 Day Base (5 Hours Max)</div>
+                                    <div class="h4 fw-bold text-primary mb-2">NGN <span id="hourlyBasePriceDisplay">0.00</span></div>
+                                    <div class="badge bg-danger p-2 px-3 rounded-pill">
+                                        Overtime Rate: NGN <span id="overtimeRateDisplay">0.00</span> per hour
+                                    </div>
+                                    <input type="hidden" id="overtimeHours" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="multiDayFields" class="row mb-4 d-none">
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">Start Date</label>
+                                <input type="date" class="form-control rounded-pill" id="startDate" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">End Date</label>
+                                <input type="date" class="form-control rounded-pill" id="endDate" required>
+                                <input type="hidden" id="numDays" value="1">
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <label class="form-label text-muted small fw-bold d-block">Duration</label>
+                                <span class="badge bg-dark fs-6 py-2 px-3 rounded-pill mt-1"><span id="selectedDaysCount">1</span> Days</span>
+                            </div>
+                        </div>
+                        
+                        <p class="mb-4 text-center border-top pt-3">Rental Summary: <strong id="selectedDateText"></strong></p>
+
+                        <form id="bookingForm">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Select Vehicle</label>
+                                <select class="form-select rounded-pill" id="carSelection" required>
+                                    <option value="" selected>Select a vehicle...</option>
+                                </select>
+                            </div>
+
+                            <h6 class="fw-bold mt-4 mb-3">Your Details</h6>
+                            <div class="row g-2 mb-3">
+                                <div class="col-12">
+                                    <label class="form-label text-muted small fw-bold">Name</label>
+                                    <input type="text" class="form-control rounded-pill" value="{{ request.user.get_full_name|default:request.user.username }}" readonly>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-muted small fw-bold">Email</label>
+                                    <input type="email" class="form-control rounded-pill" value="{{ request.user.email }}" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Phone</label>
+                                    <input type="tel" class="form-control rounded-pill" id="customerPhone" placeholder="Phone Number" value="{{ request.user.profile.phone_number|default:'' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small fw-bold">Address</label>
+                                    <input type="text" class="form-control rounded-pill" id="customerAddress" placeholder="Contact Address" value="{{ request.user.profile.address|default:'' }}">
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold mt-4 mb-3">Kinsman Details</h6>
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control rounded-pill" id="kinsmanName" placeholder="Kinsman Full Name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="tel" class="form-control rounded-pill" id="kinsmanPhone" placeholder="Kinsman Phone" required>
+                                </div>
+                                <div class="col-12">
+                                    <input type="text" class="form-control rounded-pill" id="kinsmanAddress" placeholder="Kinsman Address" required>
+                                </div>
+                            </div>
+
+                            <div class="bg-light p-3 rounded-4 mb-2 text-center border">
+                                <span class="text-muted small d-block mb-1">Driver Upkeep</span>
+                                <h6 class="fw-bold text-dark mb-0">NGN <span id="bookingUpkeepAmount">0.00</span></h6>
+                            </div>
+
+                            <div class="bg-light p-3 rounded-4 mb-4 text-center border">
+                                <span class="text-muted small d-block mb-1">Total Amount</span>
+                                <h4 class="fw-bold text-primary mb-0">NGN <span id="bookingTotalAmount">0.00</span></h4>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2" id="confirmBooking">Confirm Booking</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Details Modal -->
+        <div class="modal fade" id="adminModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                    <div class="modal-header border-0 bg-dark text-white rounded-top-4">
+                        <h5 class="modal-title fw-bold">Reservation Details (Admin)</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="card border-0">
+                            <div class="card-body p-4 text-center">
+                                <div class="mb-4">
+                                    <label class="small text-muted d-block">Customer Name</label>
+                                    <h4 id="adminName" class="fw-bold"></h4>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="small text-muted d-block">Car Booked</label>
+                                    <span id="adminCar" class="badge bg-primary fs-6"></span>
+                                </div>
+                                <hr>
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-location-dot me-2 text-primary"></i> <span id="adminAddress"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-envelope me-2 text-primary"></i> <span id="adminEmail"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-phone me-2 text-primary"></i> <span id="adminPhone"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <input type="hidden" id="adminBookingId">
+                        <button type="button" id="cancelBookingBtn" class="btn btn-outline-danger rounded-pill px-4">Cancel Booking</button>
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+    <!-- Inject Django Cars Data -->
+    <script>
+        var djangoCars = [
+        {% for car in cars %}
+            {
+                "id": "{{ car.id }}",
+                "name": "{{ car.name|escapejs }}",
+                "price": "{{ car.price }}",
+                "hourly_rate": "{{ car.hourly_rate }}",
+                "overtime_rate": "{{ car.overtime_rate }}",
+                "driver_upkeep": "{{ car.driver_upkeep }}",
+                "image": "{% if car.image|slice:':4' == 'http' %}{{ car.image|escapejs }}{% else %}{% static car.image %}{% endif %}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        ];
+    </script>
+    
+    <script src="{% static 'js/booking.js' %}"></script>
+{% endblock %}

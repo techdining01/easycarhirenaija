@@ -38,7 +38,7 @@ const cars = [
         id: "mercedes-gwagon",
         name: "Mercedes-Benz G 63 AMG",
         price: "450,000",
-        image: "images/mercedes-gwagon.png",
+        image: "/static/images/mercedes-gwagon.png",
         description: "The legendary G-Class, where off-road meets pure luxury.",
         rating: 5.0,
         reviews: []
@@ -47,7 +47,7 @@ const cars = [
         id: "mercedes-gle",
         name: "Mercedes-Benz GLE Coupe",
         price: "300,000",
-        image: "images/mercedes-gle.png",
+        image: "/static/images/mercedes-gle.png",
         description: "Athletic performance and SUV presence in one sleek package.",
         rating: 4.9,
         reviews: []
@@ -56,7 +56,7 @@ const cars = [
         id: "mercedes-cclass",
         name: "Mercedes-Benz C-Class",
         price: "180,000",
-        image: "images/mercedes-cclass.png",
+        image: "/static/images/mercedes-cclass.png",
         description: "Dynamic, luxurious, and technologically advanced.",
         rating: 4.8,
         reviews: []

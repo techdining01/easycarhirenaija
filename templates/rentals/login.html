@@ -1,0 +1,71 @@
+{% extends 'rentals/base.html' %}
+{% load static %}
+
+{% block title %}Sign In | EasyCarHireNaija{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            margin-bottom: 50px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="auth-container p-3">
+        <div class="auth-card shadow-lg text-center">
+            <h2 class="fw-bold mb-4">Easy<span class="text-primary">CarHireNaija</span></h2>
+            <h5 class="mb-4">Welcome Back!</h5>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post" class="text-start">
+                {% csrf_token %}
+                
+                <div class="form-floating mb-3">
+                    <input type="text" name="username_or_email" class="form-control rounded-4" id="username_or_email" placeholder="Username or Email" required>
+                    <label for="username_or_email"><i class="fa-solid fa-user me-2"></i>Username or Email</label>
+                </div>
+                
+                <div class="form-floating mb-4">
+                    <input type="password" name="password" class="form-control rounded-4" id="password" placeholder="Password" required>
+                    <label for="password"><i class="fa-solid fa-lock me-2"></i>Password</label>
+                </div>
+                
+                <button type="submit" class="btn btn-dark w-100 rounded-pill py-3 fw-bold mb-3">
+                    Sign In <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>
+                </button>
+            </form>
+
+            <div class="mt-4">
+                <p class="text-muted small">Don't have an account? <a href="{% url 'rentals:signup' %}" class="text-primary text-decoration-none fw-bold">Sign up here</a></p>
+                <a href="{% url 'rentals:home' %}" class="text-muted small text-decoration-none border-bottom">Back to Home</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/auth.js' %}"></script>
+{% endblock %}
